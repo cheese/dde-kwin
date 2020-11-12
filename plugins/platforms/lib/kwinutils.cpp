@@ -604,7 +604,7 @@ QObject *KWinUtils::tabBox()
 
 QObject *KWinUtils::cursor()
 {
-    return KWin::Cursor::s_self;
+    return nullptr; //KWin::Cursor;
 }
 
 QObject *KWinUtils::virtualDesktop()
