@@ -21,7 +21,6 @@
 
 #include "blur.h"
 #include "blurshader.h"
-#include "kwinutils.h"
 
 #include <QGuiApplication>
 #include <QMatrix4x4>
@@ -61,9 +60,11 @@ BlurEffect::BlurEffect(QObject *, const QVariantList &)
         net_wm_blur_region = effects->announceSupportProperty(s_blurAtomName, this);
         KWaylandServer::Display *display = effects->waylandDisplay();
         if (display) {
-            m_blurManager = display->createBlurManager(this);
 #if defined(KWIN_VERSION) && KWIN_VERSION <= KWIN_VERSION_CHECK(5, 18, 90, 0)
+            m_blurManager = display->createBlurManager(this);
             m_blurManager->create();
+#else
+            m_blurManager = new KWaylandServer::BlurManagerInterface(display, this);
 #endif
         }
     } else {
@@ -511,7 +512,7 @@ void BlurEffect::uploadGeometry(GLVertexBuffer *vbo, const QRegion &blurRegion, 
     vbo->setAttribLayout(layout, 2, sizeof(QVector2D));
 }
 
-void BlurEffect::prePaintScreen(ScreenPrePaintData &data, int time)
+void BlurEffect::prePaintScreen(ScreenPrePaintData &data, TimeArgType time)
 {
     m_damagedArea = QRegion();
     m_paintedArea = QRegion();
@@ -520,7 +521,7 @@ void BlurEffect::prePaintScreen(ScreenPrePaintData &data, int time)
     effects->prePaintScreen(data, time);
 }
 
-void BlurEffect::prePaintWindow(EffectWindow* w, WindowPrePaintData& data, int time)
+void BlurEffect::prePaintWindow(EffectWindow* w, WindowPrePaintData& data, TimeArgType time)
 {
     // this effect relies on prePaintWindow being called in the bottom to top order
 
@@ -914,4 +915,3 @@ void BlurEffect::copyScreenSampleTexture(GLVertexBuffer *vbo, int blurRectCount,
 
     m_shader->unbind();
 }
-
